@@ -1,12 +1,7 @@
--- ============================================
--- COMP 3920 Assignment 2 - Chat App Schema
--- Run this on your Aiven MySQL instance
--- ============================================
-
+ 
 CREATE DATABASE IF NOT EXISTS chat_app;
 USE chat_app;
-
--- Users table
+ 
 CREATE TABLE users (
   id INT AUTO_INCREMENT PRIMARY KEY,
   username VARCHAR(50) NOT NULL UNIQUE,
@@ -14,8 +9,7 @@ CREATE TABLE users (
   password_hash VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- Chat groups table
+ 
 CREATE TABLE chat_groups (
   id INT AUTO_INCREMENT PRIMARY KEY,
   name VARCHAR(100) NOT NULL,
@@ -23,8 +17,7 @@ CREATE TABLE chat_groups (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Group memberships (many-to-many: users <-> groups)
+ 
 CREATE TABLE group_members (
   id INT AUTO_INCREMENT PRIMARY KEY,
   group_id INT NOT NULL,
@@ -34,8 +27,7 @@ CREATE TABLE group_members (
   FOREIGN KEY (group_id) REFERENCES chat_groups(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Messages table
+ 
 CREATE TABLE messages (
   id INT AUTO_INCREMENT PRIMARY KEY,
   group_id INT NOT NULL,
@@ -45,8 +37,7 @@ CREATE TABLE messages (
   FOREIGN KEY (group_id) REFERENCES chat_groups(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Emoji reactions table
+ 
 CREATE TABLE reactions (
   id INT AUTO_INCREMENT PRIMARY KEY,
   message_id INT NOT NULL,
@@ -57,8 +48,7 @@ CREATE TABLE reactions (
   FOREIGN KEY (message_id) REFERENCES messages(id) ON DELETE CASCADE,
   FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
-
--- Tracks last time a user "read" a group's messages (for unread count)
+ 
 CREATE TABLE message_reads (
   id INT AUTO_INCREMENT PRIMARY KEY,
   user_id INT NOT NULL,
