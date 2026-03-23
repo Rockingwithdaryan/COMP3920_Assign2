@@ -1,0 +1,98 @@
+<%- include('../partials/header', { title: group.name }) %>
+
+<div class="chat-layout">
+
+  <!-- Sidebar -->
+  <aside class="chat-sidebar">
+    <a href="/groups" class="btn btn-ghost btn-sm">← All Chats</a>
+    <h2 class="sidebar-group-name"><%= group.name %></h2>
+
+    <!-- Members -->
+    <div class="sidebar-section">
+      <h3>Members (<%= members.length %>)</h3>
+      <ul class="member-list">
+        <% members.forEach(m => { %>
+          <li class="member-item">
+            <span class="member-avatar sm"><%= m.username.charAt(0).toUpperCase() %></span>
+            <span>@<%= m.username %></span>
+            <% if (m.id === currentUserId) { %><span class="you-badge">you</span><% } %>
+          </li>
+        <% }) %>
+      </ul>
+    </div>
+
+    <!-- Invite -->
+    <% if (nonMembers.length > 0) { %>
+    <div class="sidebar-section">
+      <h3>Invite People</h3>
+      <form action="/groups/<%= group.id %>/invite" method="POST" class="invite-form">
+        <select name="invite_user_id" class="select-input">
+          <option value="">Select a user…</option>
+          <% nonMembers.forEach(u => { %>
+            <option value="<%= u.id %>">@<%= u.username %></option>
+          <% }) %>
+        </select>
+        <button type="submit" class="btn btn-primary btn-sm btn-full">Invite</button>
+      </form>
+    </div>
+    <% } %>
+  </aside>
+
+  <!-- Main chat area -->
+  <div class="chat-main">
+    <div class="messages-container" id="messagesContainer">
+      <% if (messages.length === 0) { %>
+        <div class="empty-state">
+          <p>No messages yet. Say hello! 👋</p>
+        </div>
+      <% } %>
+
+      <% messages.forEach(msg => { %>
+        <div class="message <%= msg.sender === user.username ? 'message--own' : '' %>">
+          <div class="message-bubble">
+            <% if (msg.sender !== user.username) { %>
+              <span class="message-sender">@<%= msg.sender %></span>
+            <% } %>
+            <p class="message-content"><%- msg.content.replace(/\n/g, '<br>') %></p>
+            <span class="message-time">
+              <%= new Date(msg.sent_at).toLocaleString('en-CA', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) %>
+            </span>
+
+            <!-- Reactions display -->
+            <div class="reactions-row">
+              <% Object.entries(msg.reactions).forEach(([emoji, usernames]) => { %>
+                <form action="/messages/reaction/<%= msg.id %>" method="POST" style="display:inline">
+                  <input type="hidden" name="emoji" value="<%= emoji %>">
+                  <button type="submit" class="reaction-btn <%= usernames.includes(user.username) ? 'reaction-btn--active' : '' %>"
+                          title="<%= usernames.join(', ') %>">
+                    <%= emoji %> <span class="reaction-count"><%= usernames.length %></span>
+                  </button>
+                </form>
+              <% }) %>
+
+              <!-- Add emoji button -->
+              <button type="button" class="reaction-add-btn" onclick="toggleEmojiPicker(this, '<%= msg.id %>')">+</button>
+              <div class="emoji-picker" id="picker-<%= msg.id %>" style="display:none">
+                <% ['👍','❤️','😂','😮','😢','🔥','👏','🎉','😍','💯'].forEach(e => { %>
+                  <form action="/messages/reaction/<%= msg.id %>" method="POST" style="display:inline">
+                    <input type="hidden" name="emoji" value="<%= e %>">
+                    <button type="submit" class="emoji-option"><%= e %></button>
+                  </form>
+                <% }) %>
+              </div>
+            </div>
+          </div>
+        </div>
+      <% }) %>
+    </div>
+
+    <!-- Message input -->
+    <form action="/messages/group/<%= group.id %>" method="POST" class="message-form">
+      <textarea name="content" placeholder="Type a message…" rows="1" required
+                onkeydown="submitOnEnter(event, this.form)"></textarea>
+      <button type="submit" class="btn btn-primary">Send</button>
+    </form>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,40 @@
+<%- include('../partials/header', { title: 'Sign Up' }) %>
+
+<div class="auth-container">
+  <div class="auth-card">
+    <div class="auth-header">
+      <div class="auth-logo">💬</div>
+      <h1>Create account</h1>
+      <p>Join the conversation</p>
+    </div>
+
+    <% if (error) { %>
+      <div class="alert alert-error"><%= error %></div>
+    <% } %>
+
+    <form action="/auth/signup" method="POST" class="auth-form">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" placeholder="cool_username" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" placeholder="you@email.com" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" placeholder="••••••••••" required>
+        <small class="form-hint">Min 10 chars with uppercase, lowercase, number & symbol</small>
+      </div>
+      <div class="form-group">
+        <label for="confirm_password">Confirm Password</label>
+        <input type="password" id="confirm_password" name="confirm_password" placeholder="••••••••••" required>
+      </div>
+      <button type="submit" class="btn btn-primary btn-full">Create account</button>
+    </form>
+
+    <p class="auth-switch">Already have an account? <a href="/auth/login">Sign in</a></p>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>
