@@ -194,3 +194,49 @@ exports.postInvite = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+
+// Returns just the messages container HTML for polling
+exports.getMessagesFragment = async (req, res) => {
+  const userId = req.session.user.id;
+  const groupId = parseInt(req.params.id);
+
+  try {
+    const [membership] = await db.query(
+      'SELECT id FROM group_members WHERE group_id = ? AND user_id = ?',
+      [groupId, userId]
+    );
+    if (membership.length === 0) return res.status(400).send('Access denied.');
+
+    const [messages] = await db.query(`
+      SELECT m.id, m.content, m.sent_at, u.username AS sender
+      FROM messages m
+      JOIN users u ON m.user_id = u.id
+      WHERE m.group_id = ?
+      ORDER BY m.sent_at ASC
+    `, [groupId]);
+
+    const [reactions] = await db.query(`
+      SELECT r.message_id, r.emoji, r.user_id, u.username
+      FROM reactions r
+      JOIN users u ON r.user_id = u.id
+      WHERE r.message_id IN (SELECT id FROM messages WHERE group_id = ?)
+    `, [groupId]);
+
+    const reactionsMap = {};
+    reactions.forEach(r => {
+      if (!reactionsMap[r.message_id]) reactionsMap[r.message_id] = {};
+      if (!reactionsMap[r.message_id][r.emoji]) reactionsMap[r.message_id][r.emoji] = [];
+      reactionsMap[r.message_id][r.emoji].push(r.username);
+    });
+    messages.forEach(m => { m.reactions = reactionsMap[m.id] || {}; });
+
+    res.render('groups/messages_fragment', {
+      messages,
+      group: { id: groupId },
+      currentUserId: userId
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Error');
+  }
+};
